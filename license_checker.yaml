@@ -1,0 +1,27 @@
+permittedLicenses:
+  - MIT
+  - MIT-Modern-Variant
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - Apache-2.0
+  - ISC
+  - SIL OFL 1.1
+  - MPL-2.0
+
+rejectedLicenses:
+  - GPL-2.0
+  - GPL-3.0
+  - AGPL-3.0
+  - LGPL-2.0
+  - LGPL-2.1
+  - LGPL-3.0
+  - SSPL
+  - CC-BY-SA-4.0
+
+approvedPackages:
+  no-file:
+    - flutter_localizations
+    - flutter_test
+    - flutter_web_plugins
+  unknown-license:
+    - dependency_validator
