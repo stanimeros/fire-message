@@ -1,7 +1,7 @@
 name: fire_message
 description: "Fire Message"
 publish_to: 'none'
-version: 1.1.0+13
+version: 1.1.1+14
 
 environment:
   sdk: ^3.10.3
@@ -9,20 +9,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^10.3.1
   heroicons: ^0.11.0
-  file_picker: ^10.3.7
-  path_provider: ^2.1.5
+  file_picker: ^11.0.2
+  path_provider: ^2.1.6
   http: ^1.6.0
-  shared_preferences: ^2.5.4
+  shared_preferences: ^2.5.5
   flutter_launcher_icons: ^0.14.4
-  webview_flutter: ^4.13.0
-  google_fonts: ^6.3.3
-  googleapis_auth: ^2.0.0
-  purchases_flutter: ^9.10.0
+  webview_flutter: ^4.14.1
+  google_fonts: ^8.2.1
+  googleapis_auth: ^2.3.3
+  purchases_flutter: ^10.8.0
   action_slider: ^0.7.0
-  flutter_dotenv: ^5.1.0
-  url_launcher: ^6.3.1
+  flutter_dotenv: ^6.0.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

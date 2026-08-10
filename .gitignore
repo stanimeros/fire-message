@@ -52,3 +52,6 @@ deploy.yaml
 
 # Environment variables
 .env
+
+fastlane/report.xml
+fastlane/README.md

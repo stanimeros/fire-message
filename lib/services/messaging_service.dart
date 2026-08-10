@@ -56,7 +56,7 @@ class MessagingService {
         'title': title,
         'body': body,
       },
-      if (data != null) 'data': data,
+      'data': ?data,
     };
 
     // Add image URL to platform-specific fields if provided

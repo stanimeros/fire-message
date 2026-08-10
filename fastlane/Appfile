@@ -1,0 +1,4 @@
+app_identifier("com.stanimeros.firemessage") # iOS bundle id, detected from ios/Runner.xcodeproj if present
+# apple_id("you@example.com") # your Apple ID, used for TestFlight uploads
+# json_key_file("keys/your-service-account.json") # Play Console service account
+package_name("com.stanimeros.firemessage") # Android package name, detected from android/app/build.gradle if present

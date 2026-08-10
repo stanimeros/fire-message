@@ -1,0 +1,22 @@
+{
+  "apps": {
+    "title": "Manage every Firebase project",
+    "subtitle": "Switch between Dev, Staging, and Production apps instantly."
+  },
+  "create_notification": {
+    "title": "Send FCM messages in seconds",
+    "subtitle": "Full HTTP v1 API control over notification and data payloads."
+  },
+  "targeting": {
+    "title": "Target tokens, topics, or conditions",
+    "subtitle": "Test exactly the audience your production app will reach."
+  },
+  "history": {
+    "title": "Track every send and response",
+    "subtitle": "Review history, duplicate payloads, and resend instantly."
+  },
+  "security": {
+    "title": "Your keys never leave your device",
+    "subtitle": "Service account credentials are encrypted and stored locally."
+  }
+}

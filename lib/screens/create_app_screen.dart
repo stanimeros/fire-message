@@ -56,7 +56,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
     FocusScope.of(context).unfocus();
     
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
         allowMultiple: false,
@@ -149,7 +149,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
 
   Future<void> _pickLogoFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.image,
         allowMultiple: false,
       );
