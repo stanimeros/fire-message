@@ -1,0 +1,26 @@
+Fire Message is the fastest way to send, test, and debug push notifications for your Firebase-powered apps.
+
+Built for developers and QA teams, Fire Message gives you full control over the messaging HTTP v1 API without touching a terminal or writing a script.
+
+MANAGE EVERY PROJECT
+Add as many projects as you need and switch between Dev, Staging, and Production instantly. Keep every environment organized in one place.
+
+SEND MESSAGES IN SECONDS
+Compose and send push notifications with full control over notification text, custom data payloads, and delivery options — all from a clean, simple interface.
+
+PRECISE TARGETING
+Send to a single device token, a topic, or a condition. Test exactly the audience your production app will reach before you ship.
+
+FULL SEND HISTORY
+Every message you send is logged with its response. Review past sends, duplicate a payload to reuse it, and resend with one tap.
+
+SECURITY FIRST
+Your service account credentials never leave your device. Keys are encrypted and stored locally — nothing is uploaded to any external server.
+
+Whether you're debugging a notification issue, demoing push behavior to a client, or running QA before a release, Fire Message keeps your entire workflow in your pocket.
+
+Download Fire Message and take control of your push notifications today.
+
+By using this app, you agree to the below:
+Privacy Policy: https://stanimeros.com/privacy-policy
+Apple’s Standard End User License Agreement (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
