@@ -55,3 +55,4 @@ deploy.yaml
 
 fastlane/report.xml
 fastlane/README.md
+fastlane/appstoresuite/
