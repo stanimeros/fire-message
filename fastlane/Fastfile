@@ -12,12 +12,12 @@ IOS_BUNDLE_ID = "com.stanimeros.firemessage"
 REPO_ROOT = File.expand_path("..", __dir__)
 
 # Play Console service account JSON (Setup > API access in Play Console).
-PLAY_JSON_KEY = File.join(REPO_ROOT, "keys", "your-service-account.json")
+PLAY_JSON_KEY = File.join(REPO_ROOT, "keys", "stanimeros-dev-fbd9905c1ad6.json")
 
 # App Store Connect API key (Users and Access > Integrations in App Store Connect).
-ASC_KEY_ID = "TODO_ASC_KEY_ID"
-ASC_ISSUER_ID = "TODO_ASC_ISSUER_ID"
-ASC_KEY_PATH = File.join(REPO_ROOT, "keys", "AuthKey_TODO_ASC_KEY_ID.p8")
+ASC_KEY_ID = "D7D3GAJW75"
+ASC_ISSUER_ID = "2a4793db-567d-4b27-a340-c846b9a75318"
+ASC_KEY_PATH = File.join(REPO_ROOT, "keys", "AuthKey_D7D3GAJW75.p8")
 
 def pubspec_version
   content = File.read(File.join(REPO_ROOT, "pubspec.yaml"))
