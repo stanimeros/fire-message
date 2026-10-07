@@ -6,7 +6,7 @@ import 'token_service.dart';
 class GeminiService {
   final _secureStorage = SecureStorageService();
   final _tokenService = TokenService();
-  static const String _geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+  static const String _geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
 
   /// Get access token from service account credentials
   Future<String> _getAccessToken(String appId) async {
@@ -54,7 +54,7 @@ class GeminiService {
             }
           ],
           'generationConfig': {
-            'thinking_config': {'thinking_budget': 0} // Skips internal reasoning for speed
+            'thinkingConfig': {'thinkingLevel': 'minimal'} // Minimal reasoning for speed
           }
         }),
       );
