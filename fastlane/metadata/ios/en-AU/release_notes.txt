@@ -1,0 +1,4 @@
+- Redesigned interface: cleaner, flatter dark theme with clearer forms and lists
+- Clearer subscription screen with accurate trial details for each plan
+- Easier-to-read dates in your send history
+- Bug fixes and stability improvements
