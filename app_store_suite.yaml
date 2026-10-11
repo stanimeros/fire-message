@@ -44,6 +44,8 @@ devices:
     simulator: "iPad Pro 13-inch (M5)"
   android_phone:
     avd: "Medium_Phone" # any AVD name; `appstoresuite setup` creates missing ones
+  android_tablet:
+    avd: "Pixel_Tablet"
 
 # Optional timing for `auto-capture` (overridable via --warmup-delay / --render-delay).
 auto_capture:
