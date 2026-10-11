@@ -11,18 +11,18 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  flutter_secure_storage: ^10.3.1
+  flutter_secure_storage: ^11.2.0
   heroicons: ^0.11.0
-  file_picker: ^11.0.2
+  file_picker: ^13.1.0
   http: ^1.6.0
-  shared_preferences: ^2.5.5
+  shared_preferences: ^2.5.6
   webview_flutter: ^4.14.1
-  google_fonts: ^8.2.1
-  googleapis_auth: ^2.3.3
-  purchases_flutter: ^10.8.0
+  google_fonts: ^9.0.0
+  googleapis_auth: ^2.3.4
+  purchases_flutter: ^10.15.2
   action_slider: ^0.7.0
   flutter_dotenv: ^6.0.1
-  url_launcher: ^6.3.2
+  url_launcher: ^6.3.3
   intl: ^0.20.3
 
 dev_dependencies:

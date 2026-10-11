@@ -1,1 +1,1 @@
-Send and test Firebase push notifications fast, securely, right from your phone.
+Send & test Firebase push notifications to tokens, topics & conditions.

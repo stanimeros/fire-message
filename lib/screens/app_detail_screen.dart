@@ -5,7 +5,9 @@ import '../models/topic_model.dart';
 import '../models/device_model.dart';
 import '../models/condition_model.dart';
 import '../services/app_storage_service.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/custom_app_theme.dart';
 import 'create_app_screen.dart';
 
 class AppDetailScreen extends StatefulWidget {
@@ -73,9 +75,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
         );
         await _appStorage.updateTopic(_currentApp.id, updatedTopic);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Topic updated successfully')),
-          );
+          showAppSnackBar(context, 'Topic updated successfully');
         }
       } else {
         // Add new topic
@@ -86,9 +86,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
         );
         await _appStorage.addTopic(_currentApp.id, topic);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Topic added successfully')),
-          );
+          showAppSnackBar(context, 'Topic added successfully');
         }
       }
       _loadData();
@@ -110,8 +108,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.onStatus,
             ),
             child: const Text('Delete'),
           ),
@@ -123,9 +121,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
       await _appStorage.deleteTopic(_currentApp.id, topic.id);
       _loadData();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Topic deleted')),
-        );
+        showAppSnackBar(context, 'Topic deleted');
         widget.onDataChanged?.call();
       }
       return true;
@@ -150,9 +146,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
         );
         await _appStorage.updateDevice(_currentApp.id, updatedDevice);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Device updated successfully')),
-          );
+          showAppSnackBar(context, 'Device updated successfully');
         }
       } else {
         // Add new device
@@ -164,9 +158,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
         );
         await _appStorage.addDevice(_currentApp.id, device);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Device added successfully')),
-          );
+          showAppSnackBar(context, 'Device added successfully');
         }
       }
       _loadData();
@@ -188,8 +180,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.onStatus,
             ),
             child: const Text('Delete'),
           ),
@@ -201,9 +193,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
       await _appStorage.deleteDevice(_currentApp.id, device.id);
       _loadData();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Device deleted')),
-        );
+        showAppSnackBar(context, 'Device deleted');
         widget.onDataChanged?.call();
       }
       return true;
@@ -234,9 +224,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
         );
         await _appStorage.updateCondition(_currentApp.id, updatedCondition);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Condition updated successfully')),
-          );
+          showAppSnackBar(context, 'Condition updated successfully');
         }
       } else {
         // Add new condition
@@ -250,9 +238,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
         );
         await _appStorage.addCondition(_currentApp.id, condition);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Condition added successfully')),
-          );
+          showAppSnackBar(context, 'Condition added successfully');
         }
       }
       _loadData();
@@ -274,8 +260,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.onStatus,
             ),
             child: const Text('Delete'),
           ),
@@ -287,9 +273,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
       await _appStorage.deleteCondition(_currentApp.id, condition.id);
       _loadData();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Condition deleted')),
-        );
+        showAppSnackBar(context, 'Condition deleted');
         widget.onDataChanged?.call();
       }
       return true;
@@ -322,11 +306,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
         title: Text(widget.app.name),
         actions: [
           IconButton(
-            icon: const HeroIcon(
-              HeroIcons.pencil,
-              color: Colors.white,
-              size: 18,
-            ),
+            icon: const HeroIcon(HeroIcons.pencil),
             onPressed: () async {
               final result = await Navigator.push(
                 context,
@@ -357,8 +337,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    HeroIcon(HeroIcons.devicePhoneMobile, size: 15),
-                    SizedBox(width: 4),
+                    HeroIcon(HeroIcons.devicePhoneMobile, size: AppSizes.iconSm),
+                    SizedBox(width: AppSpacing.xs),
                     Text('Devices'),
                   ],
                 ),
@@ -368,8 +348,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    HeroIcon(HeroIcons.hashtag, size: 15),
-                    SizedBox(width: 4),
+                    HeroIcon(HeroIcons.hashtag, size: AppSizes.iconSm),
+                    SizedBox(width: AppSpacing.xs),
                     Text('Topics'),
                   ],
                 ),
@@ -379,8 +359,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    HeroIcon(HeroIcons.funnel, size: 15),
-                    SizedBox(width: 4),
+                    HeroIcon(HeroIcons.funnel, size: AppSizes.iconSm),
+                    SizedBox(width: AppSpacing.xs),
                     Text('Conditions'),
                   ],
                 ),
@@ -421,55 +401,23 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
 
   Widget _buildTopicsTab() {
     if (_topics.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HeroIcon(
-                HeroIcons.inbox,
-                size: 48,
-                style: HeroIconStyle.outline,
-                color: Colors.grey,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'No topics added yet',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey,
-                    ),
-              ),
-            ],
-          ),
-        ),
+      return const EmptyState(
+        icon: HeroIcons.inbox,
+        title: 'No topics yet',
+        subtitle: 'Tap + to add one',
       );
     }
     
     return ListView.separated(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.screen,
       itemCount: _topics.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.listGap),
       itemBuilder: (context, index) {
         final topic = _topics[index];
         return Dismissible(
           key: Key(topic.id),
           direction: DismissDirection.endToStart,
-          background: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error,
-              ),
-              child: const HeroIcon(
-                HeroIcons.trash,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
+          background: const DismissDeleteBackground(),
           confirmDismiss: (direction) async {
             final deleted = await _deleteTopic(topic);
             if (deleted) {
@@ -478,7 +426,6 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
             return deleted;
           },
           child: Card(
-            margin: EdgeInsets.zero,
             child: ListTile(
               leading: const CircleAvatar(
                 child: HeroIcon(HeroIcons.hashtag),
@@ -498,55 +445,23 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
 
   Widget _buildDevicesTab() {
     if (_devices.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HeroIcon(
-                HeroIcons.inbox,
-                size: 48,
-                style: HeroIconStyle.outline,
-                color: Colors.grey,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'No devices added yet',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey,
-                    ),
-              ),
-            ],
-          ),
-        ),
+      return const EmptyState(
+        icon: HeroIcons.inbox,
+        title: 'No devices yet',
+        subtitle: 'Tap + to add one',
       );
     }
     
     return ListView.separated(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.screen,
       itemCount: _devices.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.listGap),
       itemBuilder: (context, index) {
         final device = _devices[index];
         return Dismissible(
           key: Key(device.id),
           direction: DismissDirection.endToStart,
-          background: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error,
-              ),
-              child: const HeroIcon(
-                HeroIcons.trash,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
+          background: const DismissDeleteBackground(),
           confirmDismiss: (direction) async {
             final deleted = await _deleteDevice(device);
             if (deleted) {
@@ -555,7 +470,6 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
             return deleted;
           },
           child: Card(
-            margin: EdgeInsets.zero,
             child: ListTile(
               leading: const CircleAvatar(
                 child: HeroIcon(HeroIcons.devicePhoneMobile),
@@ -612,55 +526,23 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
 
   Widget _buildConditionsTab() {
     if (_conditions.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HeroIcon(
-                HeroIcons.inbox,
-                size: 48,
-                style: HeroIconStyle.outline,
-                color: Colors.grey,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'No conditions added yet',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey,
-                    ),
-              ),
-            ],
-          ),
-        ),
+      return const EmptyState(
+        icon: HeroIcons.inbox,
+        title: 'No conditions yet',
+        subtitle: 'Tap + to add one',
       );
     }
     
     return ListView.separated(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.screen,
       itemCount: _conditions.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.listGap),
       itemBuilder: (context, index) {
         final condition = _conditions[index];
         return Dismissible(
           key: Key(condition.id),
           direction: DismissDirection.endToStart,
-          background: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error,
-              ),
-              child: const HeroIcon(
-                HeroIcons.trash,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
+          background: const DismissDeleteBackground(),
           confirmDismiss: (direction) async {
             final deleted = await _deleteCondition(condition);
             if (deleted) {
@@ -669,12 +551,11 @@ class _AppDetailScreenState extends State<AppDetailScreen> with SingleTickerProv
             return deleted;
           },
           child: Card(
-            margin: EdgeInsets.zero,
             child: ListTile(
               leading: CircleAvatar(
                 child: Text(
                   condition.operator,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.labelSmall,
                 ),
               ),
               title: Text(condition.name),
@@ -730,7 +611,6 @@ class _AddTopicDialogState extends State<_AddTopicDialog> {
           decoration: const InputDecoration(
             labelText: 'Topic Name',
             hintText: 'news',
-            border: OutlineInputBorder(),
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
@@ -803,8 +683,7 @@ class _AddDeviceDialogState extends State<_AddDeviceDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Device Name',
                   hintText: 'iPhone 15 Pro',
-                  border: OutlineInputBorder(),
-                ),
+                      ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a name';
@@ -814,14 +693,13 @@ class _AddDeviceDialogState extends State<_AddDeviceDialog> {
                 textCapitalization: TextCapitalization.words,
                 autofocus: true,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextFormField(
                 controller: _tokenController,
                 decoration: const InputDecoration(
                   labelText: 'Notification Token',
                   hintText: 'FCM device token',
-                  border: OutlineInputBorder(),
-                ),
+                      ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a token';
@@ -904,14 +782,13 @@ class _AddConditionDialogState extends State<_AddConditionDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'Condition Name',
                     hintText: 'Premium Users',
-                    border: OutlineInputBorder(),
-                  ),
+                          ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a condition name';
@@ -921,15 +798,14 @@ class _AddConditionDialogState extends State<_AddConditionDialog> {
                   autofocus: true,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: DropdownButtonFormField<String>(
                   initialValue: _operator,
                   decoration: const InputDecoration(
                     labelText: 'Operator',
-                    border: OutlineInputBorder(),
-                  ),
+                          ),
                   items: const [
                     DropdownMenuItem(value: 'AND', child: Text('AND')),
                     DropdownMenuItem(value: 'OR', child: Text('OR')),
@@ -943,12 +819,12 @@ class _AddConditionDialogState extends State<_AddConditionDialog> {
                   },
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: const Text('Select Topics:'),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               ...widget.topics.map((topic) => CheckboxListTile(
                 title: Text(topic.name),
                 value: _selectedTopicIds.contains(topic.id),
@@ -962,12 +838,12 @@ class _AddConditionDialogState extends State<_AddConditionDialog> {
                   });
                 },
               )),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: const Text('Select Conditions:'),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               ...widget.conditions.map((condition) => CheckboxListTile(
                 title: Text(condition.name),
                 subtitle: Text('${condition.operator} operator'),

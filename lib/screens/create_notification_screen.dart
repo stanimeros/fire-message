@@ -12,6 +12,7 @@ import '../services/messaging_service.dart';
 import '../services/gemini_service.dart';
 import '../services/token_service.dart';
 import '../widgets/custom_app_theme.dart';
+import '../widgets/app_widgets.dart';
 
 class CreateNotificationScreen extends StatefulWidget {
   final void Function(VoidCallback)? onRefreshCallback;
@@ -215,9 +216,7 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
 
   Future<void> _showRefineDialog(String fieldType, String originalText) async {
     if (_selectedApp == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an app first')),
-      );
+      showAppSnackBar(context, 'Please select an app first');
       return;
     }
 
@@ -282,123 +281,105 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
+      builder: (context) => Padding(
+        padding: AppSpacing.screen,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Select Target',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                IconButton(
-                  icon: const HeroIcon(HeroIcons.xMark),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Devices section
-            if (_devices.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  'Devices',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ),
-              ..._devices.map((device) => ListTile(
-                leading: const HeroIcon(HeroIcons.devicePhoneMobile, size: 20),
-                title: Text(device.name),
-                subtitle: Text(
-                  device.notificationToken,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                selected: _selectedDevice?.id == device.id,
-                onTap: () {
-                  setState(() {
-                    _selectedDevice = device;
-                    _selectedTopic = null;
-                    _selectedCondition = null;
-                  });
-                  Navigator.pop(context);
-                },
-              )),
-              const Divider(),
-            ],
-            // Topics section
-            if (_topics.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8, top: 8),
-                child: Text(
-                  'Topics',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ),
-              ..._topics.map((topic) => ListTile(
-                leading: const HeroIcon(HeroIcons.hashtag, size: 20),
-                title: Text(topic.name),
-                selected: _selectedTopic?.id == topic.id,
-                onTap: () {
-                  setState(() {
-                    _selectedTopic = topic;
-                    _selectedDevice = null;
-                    _selectedCondition = null;
-                  });
-                  Navigator.pop(context);
-                },
-              )),
-              const Divider(),
-            ],
-            // Conditions section
-            if (_conditions.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8, top: 8),
-                child: Text(
-                  'Conditions',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ),
-              ..._conditions.map((condition) => ListTile(
-                leading: CircleAvatar(
-                  radius: 12,
-                  child: Text(
-                    condition.operator,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Target',
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                ),
-                title: Text(condition.name),
-                subtitle: Text(
-                  '${condition.topicIds.length} topics, ${condition.conditionIds.length} nested',
-                ),
-                selected: _selectedCondition?.id == condition.id,
-                onTap: () {
-                  setState(() {
-                    _selectedCondition = condition;
-                    _selectedDevice = null;
-                    _selectedTopic = null;
-                  });
-                  Navigator.pop(context);
-                },
-              )),
-            ],
-            if (_devices.isEmpty && _topics.isEmpty && _conditions.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(32),
-                child: Center(
-                  child: Text(
-                    'No targets available',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey,
+                  IconButton(
+                    icon: const HeroIcon(HeroIcons.xMark),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              // Devices section
+              if (_devices.isNotEmpty) ...[
+                const SectionHeader('Devices'),
+                ..._devices.map((device) => ListTile(
+                  leading: const HeroIcon(HeroIcons.devicePhoneMobile),
+                  title: Text(device.name),
+                  subtitle: Text(
+                    device.notificationToken,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  selected: _selectedDevice?.id == device.id,
+                  onTap: () {
+                    setState(() {
+                      _selectedDevice = device;
+                      _selectedTopic = null;
+                      _selectedCondition = null;
+                    });
+                    Navigator.pop(context);
+                  },
+                )),
+                const Divider(),
+              ],
+              // Topics section
+              if (_topics.isNotEmpty) ...[
+                const SectionHeader('Topics'),
+                ..._topics.map((topic) => ListTile(
+                  leading: const HeroIcon(HeroIcons.hashtag),
+                  title: Text(topic.name),
+                  selected: _selectedTopic?.id == topic.id,
+                  onTap: () {
+                    setState(() {
+                      _selectedTopic = topic;
+                      _selectedDevice = null;
+                      _selectedCondition = null;
+                    });
+                    Navigator.pop(context);
+                  },
+                )),
+                const Divider(),
+              ],
+              // Conditions section
+              if (_conditions.isNotEmpty) ...[
+                const SectionHeader('Conditions'),
+                ..._conditions.map((condition) => ListTile(
+                  leading: CircleAvatar(
+                    radius: AppSpacing.md,
+                    child: Text(
+                      condition.operator,
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ),
+                  title: Text(condition.name),
+                  subtitle: Text(
+                    '${condition.topicIds.length} topics, ${condition.conditionIds.length} nested',
+                  ),
+                  selected: _selectedCondition?.id == condition.id,
+                  onTap: () {
+                    setState(() {
+                      _selectedCondition = condition;
+                      _selectedDevice = null;
+                      _selectedTopic = null;
+                    });
+                    Navigator.pop(context);
+                  },
+                )),
+              ],
+              if (_devices.isEmpty && _topics.isEmpty && _conditions.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xxl),
+                  child: Center(
+                    child: Text(
+                      'No targets available',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -406,17 +387,11 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
     );
   }
 
-
   void _showSendConfirmation() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(24),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -425,9 +400,7 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
               children: [
                 Text(
                   'Send Notification',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 IconButton(
                   icon: const HeroIcon(HeroIcons.xMark),
@@ -435,18 +408,18 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               'Are you sure you want to send this notification?',
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             ActionSlider.standard(
               width: double.infinity,
               height: 64,
-              backgroundColor: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
-              toggleColor: CustomAppTheme.primaryCyan,
+              backgroundColor: AppColors.surface,
+              toggleColor: AppColors.primary,
               action: (controller) async {
                 controller.loading();
                 await _sendNotification();
@@ -456,40 +429,27 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
                   controller.reset();
                 }
               },
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Slide to Send',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+              child: Text(
+                'Slide to Send',
+                style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
 
+
   Future<void> _sendNotification() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedApp == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an app')),
-      );
+      showAppSnackBar(context, 'Please select an app');
       return;
     }
 
     if (_selectedDevice == null && _selectedTopic == null && _selectedCondition == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a device, topic, or condition')),
-      );
+      showAppSnackBar(context, 'Please select a device, topic, or condition');
       return;
     }
 
@@ -545,11 +505,10 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
       await _notificationStorage.saveNotification(savedNotification);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message'] ?? (success ? 'Notification sent successfully' : 'Failed to send notification')),
-            backgroundColor: success ? Colors.green : Theme.of(context).colorScheme.error,
-          ),
+        showAppSnackBar(
+          context,
+          response['message'] ?? (success ? 'Notification sent successfully' : 'Failed to send notification'),
+          type: success ? SnackType.success : SnackType.error,
         );
 
         if (success) {
@@ -602,12 +561,7 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
       await _notificationStorage.saveNotification(notification);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(notification.resultMessage ?? 'Error occurred'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, notification.resultMessage ?? 'Error occurred', type: SnackType.error);
         widget.onDataChanged?.call();
       }
     }
@@ -625,286 +579,228 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final textTheme = Theme.of(context).textTheme;
+    final hasApp = _selectedApp != null;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.screen,
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+            const SectionHeader('App'),
+            DropdownButtonFormField<AppModel>(
+              initialValue: _selectedApp,
+              decoration: const InputDecoration(labelText: 'Choose an app'),
+              items: _apps.map((app) => DropdownMenuItem<AppModel>(
+                value: app,
+                child: Text(app.name),
+              )).toList(),
+              onChanged: _apps.isNotEmpty ? (app) {
+                if (app != null) {
+                  setState(() {
+                    _selectedApp = app;
+                  });
+                  _loadAppData(app);
+                }
+              } : null,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            const SectionHeader('Message'),
+            TextFormField(
+              controller: _nicknameController,
+              enabled: hasApp,
+              decoration: const InputDecoration(
+                labelText: 'Nickname',
+                hintText: 'e.g., Welcome Message, Daily Reminder',
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter a nickname';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Stack(
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  enabled: hasApp,
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    hintText: 'Notification title',
+                    contentPadding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      AppSpacing.xxl + AppSpacing.lg,
+                      AppSpacing.lg,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter title';
+                    }
+                    return null;
+                  },
+                ),
+                Positioned(
+                  top: AppSpacing.sm,
+                  right: AppSpacing.sm,
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _titleController,
+                    builder: (context, value, child) {
+                      final isEnabled = hasApp && value.text.isNotEmpty;
+                      return IconButton(
+                        icon: const HeroIcon(HeroIcons.sparkles),
+                        onPressed: isEnabled
+                            ? () => _showRefineDialog('title', _titleController.text)
+                            : null,
+                        tooltip: 'Refine title',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Stack(
+              children: [
+                TextFormField(
+                  controller: _bodyController,
+                  enabled: hasApp,
+                  decoration: const InputDecoration(
+                    labelText: 'Body',
+                    hintText: 'Notification body text',
+                    contentPadding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                      AppSpacing.xxl + AppSpacing.lg,
+                      AppSpacing.lg,
+                    ),
+                  ),
+                  maxLines: 3,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter body';
+                    }
+                    return null;
+                  },
+                ),
+                Positioned(
+                  top: AppSpacing.sm,
+                  right: AppSpacing.sm,
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _bodyController,
+                    builder: (context, value, child) {
+                      final isEnabled = hasApp && value.text.isNotEmpty;
+                      return IconButton(
+                        icon: const HeroIcon(HeroIcons.sparkles),
+                        onPressed: isEnabled
+                            ? () => _showRefineDialog('body', _bodyController.text)
+                            : null,
+                        tooltip: 'Refine body',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _imageUrlController,
+              enabled: hasApp,
+              decoration: const InputDecoration(
+                labelText: 'Image URL (Optional)',
+                hintText: 'https://example.com/image.png',
+              ),
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              children: [
+                const Expanded(child: SectionHeader('Custom Data')),
+                TextButton.icon(
+                  onPressed: hasApp ? _showAddCustomDataDialog : null,
+                  icon: const HeroIcon(HeroIcons.plus),
+                  label: const Text('Add'),
+                ),
+              ],
+            ),
+            ..._customData.entries.map((entry) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.listGap),
+              child: Card(
+                child: ListTile(
+                  title: Text(entry.key),
+                  subtitle: Text(entry.value),
+                  trailing: IconButton(
+                    icon: const HeroIcon(HeroIcons.xMark),
+                    onPressed: () => _removeCustomData(entry.key),
+                  ),
+                ),
+              ),
+            )),
+            const SizedBox(height: AppSpacing.xl),
+            const SectionHeader('Target'),
+            InkWell(
+              onTap: hasApp ? _showTargetSelector : null,
+              borderRadius: AppRadius.medium,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md + 2),
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.medium,
+                  border: Border.fromBorderSide(
+                    BorderSide(color: AppColors.border, width: AppSizes.borderWidth),
+                  ),
+                ),
+                child: Row(
                   children: [
-                    DropdownButtonFormField<AppModel>(
-                      initialValue: _selectedApp,
-                      decoration: const InputDecoration(
-                        labelText: 'Choose an app',
-                        border: OutlineInputBorder(),
+                    if (_selectedDevice != null)
+                      const HeroIcon(HeroIcons.devicePhoneMobile, size: AppSizes.iconMd)
+                    else if (_selectedTopic != null)
+                      const HeroIcon(HeroIcons.hashtag, size: AppSizes.iconMd)
+                    else if (_selectedCondition != null)
+                      const HeroIcon(HeroIcons.funnel, size: AppSizes.iconMd)
+                    else
+                      const HeroIcon(
+                        HeroIcons.cursorArrowRays,
+                        size: AppSizes.iconMd,
+                        color: AppColors.textSecondary,
                       ),
-                      items: _apps.map((app) => DropdownMenuItem<AppModel>(
-                        value: app,
-                        child: Text(app.name),
-                      )).toList(),
-                      onChanged: _apps.isNotEmpty ? (app) {
-                        if (app != null) {
-                          setState(() {
-                            _selectedApp = app;
-                          });
-                          _loadAppData(app);
-                        }
-                      } : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _nicknameController,
-                      enabled: _selectedApp != null,
-                      decoration: const InputDecoration(
-                        labelText: 'Nickname',
-                        hintText: 'e.g., Welcome Message, Daily Reminder',
-                        border: OutlineInputBorder(),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Text(
+                        _getSelectedTargetText(),
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: hasApp ? AppColors.textPrimary : AppColors.textMuted,
+                        ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter a nickname';
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 12),
-                    Stack(
-                      children: [
-                        TextFormField(
-                          controller: _titleController,
-                          enabled: _selectedApp != null,
-                          decoration: const InputDecoration(
-                            labelText: 'Title',
-                            hintText: 'Notification title',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.only(right: 48, top: 16, bottom: 16, left: 16),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter title';
-                            }
-                            return null;
-                          },
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: ValueListenableBuilder<TextEditingValue>(
-                            valueListenable: _titleController,
-                            builder: (context, value, child) {
-                              final isEnabled = _selectedApp != null && value.text.isNotEmpty;
-                              return IconButton(
-                                icon: HeroIcon(
-                                  HeroIcons.sparkles,
-                                  color: isEnabled
-                                      ? null
-                                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
-                                ),
-                                onPressed: isEnabled
-                                    ? () => _showRefineDialog('title', _titleController.text)
-                                    : null,
-                                tooltip: 'Refine title',
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                visualDensity: VisualDensity.compact,
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Stack(
-                      children: [
-                        TextFormField(
-                          controller: _bodyController,
-                          enabled: _selectedApp != null,
-                          decoration: const InputDecoration(
-                            labelText: 'Body',
-                            hintText: 'Notification body text',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.only(right: 48, top: 16, bottom: 16, left: 16),
-                          ),
-                          maxLines: 3,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter body';
-                            }
-                            return null;
-                          },
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: ValueListenableBuilder<TextEditingValue>(
-                            valueListenable: _bodyController,
-                            builder: (context, value, child) {
-                              final isEnabled = _selectedApp != null && value.text.isNotEmpty;
-                              return IconButton(
-                                icon: HeroIcon(
-                                  HeroIcons.sparkles,
-                                  color: isEnabled
-                                      ? null
-                                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
-                                ),
-                                onPressed: isEnabled
-                                    ? () => _showRefineDialog('body', _bodyController.text)
-                                    : null,
-                                tooltip: 'Refine body',
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                visualDensity: VisualDensity.compact,
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _imageUrlController,
-                      enabled: _selectedApp != null,
-                      decoration: const InputDecoration(
-                        labelText: 'Image URL (Optional)',
-                        hintText: 'https://example.com/image.png',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.url,
+                    const HeroIcon(
+                      HeroIcons.chevronDown,
+                      size: AppSizes.iconMd,
+                      color: AppColors.textSecondary,
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Custom Data',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: _selectedApp != null ? _showAddCustomDataDialog : null,
-                          icon: const HeroIcon(HeroIcons.plus),
-                          label: const Text('Add'),
-                        ),
-                      ],
-                    ),
-                    if (_customData.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      ..._customData.entries.map((entry) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
-                                  width: 1,
-                                ),
-                              ),
-                              child: ListTile(
-                                title: Text(entry.key),
-                                subtitle: Text(entry.value),
-                                trailing: IconButton(
-                                  icon: const HeroIcon(HeroIcons.xMark),
-                                  onPressed: () => _removeCustomData(entry.key),
-                                ),
-                              ),
-                            ),
-                      )),
-                    ]
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Target',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 12),
-                    InkWell(
-                      onTap: _selectedApp != null ? _showTargetSelector : null,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: _selectedApp != null
-                                ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)
-                                : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            if (_selectedDevice != null)
-                              const HeroIcon(HeroIcons.devicePhoneMobile, size: 20)
-                            else if (_selectedTopic != null)
-                              const HeroIcon(HeroIcons.hashtag, size: 20)
-                            else if (_selectedCondition != null)
-                              const HeroIcon(HeroIcons.funnel, size: 20)
-                            else
-                              HeroIcon(
-                                HeroIcons.cursorArrowRays,
-                                size: 20,
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                              ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _getSelectedTargetText(),
-                                style: TextStyle(
-                                  color: _selectedApp != null
-                                      ? Theme.of(context).colorScheme.onSurface
-                                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                            HeroIcon(
-                              HeroIcons.chevronDown,
-                              size: 20,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
+            const SizedBox(height: AppSpacing.xl),
+            ElevatedButton.icon(
               onPressed: () {
                 // Dismiss keyboard
                 FocusScope.of(context).unfocus();
-                
+
                 // Validate app selection
                 if (_selectedApp == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please select an app')),
-                  );
+                  showAppSnackBar(context, 'Please select an app');
                   return;
                 }
 
@@ -912,36 +808,17 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
                 if (!_formKey.currentState!.validate()) {
                   return;
                 }
-                
+
                 // Validate target selection
                 if (_selectedDevice == null && _selectedTopic == null && _selectedCondition == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please select a device, topic, or condition')),
-                  );
+                  showAppSnackBar(context, 'Please select a device, topic, or condition');
                   return;
                 }
-                
+
                 _showSendConfirmation();
               },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 56),
-                backgroundColor: CustomAppTheme.primaryCyan,
-                foregroundColor: Colors.white,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const HeroIcon(HeroIcons.paperAirplane, size: 20),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Send Notification',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+              icon: const HeroIcon(HeroIcons.paperAirplane),
+              label: const Text('Send Notification'),
             ),
           ],
         ),
@@ -1009,24 +886,13 @@ class _RefineDialogState extends State<_RefineDialog> {
       } else {
         if (mounted) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('No response from Gemini'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
+          showAppSnackBar(context, 'No response from Gemini', type: SnackType.error);
         }
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        showAppSnackBar(context, e.toString(), type: SnackType.error);
       }
     }
   }
@@ -1036,8 +902,8 @@ class _RefineDialogState extends State<_RefineDialog> {
     return AlertDialog(
       title: Row(
         children: [
-          const HeroIcon(HeroIcons.sparkles, size: 24),
-          const SizedBox(width: 8),
+          const HeroIcon(HeroIcons.sparkles, size: AppSizes.iconLg),
+          const SizedBox(width: AppSpacing.sm),
           Text('Refine ${widget.fieldType == 'title' ? 'Title' : 'Body'}'),
         ],
       ),
@@ -1050,41 +916,35 @@ class _RefineDialogState extends State<_RefineDialog> {
               'Text: ${widget.originalText}',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             TextFormField(
               controller: _promptController,
               decoration: const InputDecoration(
                 labelText: 'Prompt',
                 hintText: 'Enter your prompt...',
-                border: OutlineInputBorder(),
               ),
               maxLines: 4,
               minLines: 3,
               enabled: !_isGenerating,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             ElevatedButton.icon(
               onPressed: _isGenerating ? null : _generateRefinedText,
               icon: _isGenerating
                   ? const SizedBox(
-                      width: 16,
-                      height: 16,
+                      width: AppSizes.iconSm,
+                      height: AppSizes.iconSm,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const HeroIcon(HeroIcons.sparkles, size: 20),
+                  : const HeroIcon(HeroIcons.sparkles),
               label: Text(_isGenerating ? 'Generating...' : 'Generate'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: CustomAppTheme.primaryCyan,
-                foregroundColor: Colors.white,
-              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             TextFormField(
               controller: _resultController,
               decoration: InputDecoration(
                 labelText: 'Result',
                 hintText: 'Refined text will appear here...',
-                border: const OutlineInputBorder(),
                 enabled: !_isGenerating,
               ),
               maxLines: widget.fieldType == 'title' ? 2 : 5,
@@ -1102,10 +962,6 @@ class _RefineDialogState extends State<_RefineDialog> {
           onPressed: _resultController.text.trim().isEmpty
               ? null
               : () => Navigator.pop(context, _resultController.text.trim()),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: CustomAppTheme.primaryCyan,
-            foregroundColor: Colors.white,
-          ),
           child: const Text('Apply'),
         ),
       ],
@@ -1148,8 +1004,7 @@ class _AddCustomDataDialogState extends State<_AddCustomDataDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Key',
                   hintText: 'Enter key',
-                  border: OutlineInputBorder(),
-                ),
+                  ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a key';
@@ -1158,14 +1013,13 @@ class _AddCustomDataDialogState extends State<_AddCustomDataDialog> {
                 },
                 autofocus: true,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextFormField(
                 controller: _valueController,
                 decoration: const InputDecoration(
                   labelText: 'Value',
                   hintText: 'Enter value',
-                  border: OutlineInputBorder(),
-                ),
+                  ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a value';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heroicons/heroicons.dart';
+import 'custom_app_theme.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget title;
@@ -20,7 +21,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final canPop = ModalRoute.of(context)?.canPop ?? false;
     if (canPop) {
       return IconButton(
-        icon: HeroIcon(HeroIcons.chevronLeft),
+        icon: const HeroIcon(HeroIcons.chevronLeft),
         onPressed: () => Navigator.of(context).pop(),
       );
     }
@@ -35,14 +36,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
         return AppBar(
           title: title,
-          centerTitle: false,
-          scrolledUnderElevation: 0,
-          // backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
           automaticallyImplyLeading: false,
           leading: leading,
           actions: actions,
-          actionsPadding: const EdgeInsets.only(right: 8),
+          actionsPadding: const EdgeInsets.only(right: AppSpacing.sm),
         );
       },
     );

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/custom_app_theme.dart';
 
 const String _entitlementId = 'premium';
@@ -23,7 +24,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   bool _isRestoring = false;
   Offerings? _offerings;
   Package? _selectedPackage;
-  IntroEligibility? _introlEligibility;
+  Map<String, IntroEligibility> _introEligibility = {};
   @override
   void initState() {
     super.initState();
@@ -44,16 +45,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
         selectedPackage = offerings.current!.availablePackages.first;
       }
 
-      final eligibilityMap = await Purchases.checkTrialOrIntroductoryPriceEligibility(
-        [selectedPackage?.storeProduct.identifier ?? ''],
-      );
-
-      final eligibility = eligibilityMap[selectedPackage?.storeProduct.identifier ?? ''];
+      final productIds = offerings.current?.availablePackages
+              .map((p) => p.storeProduct.identifier)
+              .toList() ??
+          [];
+      final eligibility = productIds.isEmpty
+          ? <String, IntroEligibility>{}
+          : await Purchases.checkTrialOrIntroductoryPriceEligibility(productIds);
       
       setState(() {
         _offerings = offerings;
         _selectedPackage = selectedPackage;
-        _introlEligibility = eligibility;
+        _introEligibility = eligibility;
         _isLoading = false;
       });
     } catch (e) {
@@ -68,12 +71,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Future<void> _purchasePackage() async {
     if (_selectedPackage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a subscription plan'),
-          backgroundColor: CustomAppTheme.darkError,
-        ),
-      );
+      showAppSnackBar(context, 'Please select a subscription plan', type: SnackType.error);
       return;
     }
 
@@ -89,32 +87,17 @@ class _PaywallScreenState extends State<PaywallScreen> {
       if (success) {
         if (mounted) {
           // Premium unlocked, the app will automatically navigate away
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Welcome to Premium! 🎉'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showAppSnackBar(context, 'Welcome to Premium! 🎉', type: SnackType.success);
         }
       }
     } on PurchasesError catch (e) {
       if (e.code != PurchasesErrorCode.purchaseCancelledError) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Purchase failed: $e'),
-              backgroundColor: CustomAppTheme.darkError,
-            ),
-          );
+          showAppSnackBar(context, 'Purchase failed: $e', type: SnackType.error);
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Purchase was cancelled'),
-              backgroundColor: CustomAppTheme.darkError,
-            ),
-          );
+          showAppSnackBar(context, 'Purchase was cancelled', type: SnackType.error);
         }
       }
     } catch (e) {
@@ -139,29 +122,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
       
       if (mounted) {
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Purchases restored successfully! 🎉'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showAppSnackBar(context, 'Purchases restored successfully! 🎉', type: SnackType.success);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No purchases found to restore'),
-              backgroundColor: CustomAppTheme.darkError,
-            ),
-          );
+          showAppSnackBar(context, 'No purchases found to restore', type: SnackType.error);
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to restore purchases: $e'),
-            backgroundColor: CustomAppTheme.darkError,
-          ),
-        );
+        showAppSnackBar(context, 'Failed to restore purchases: $e', type: SnackType.error);
       }
     } finally {
       if (mounted) {
@@ -183,14 +151,41 @@ class _PaywallScreenState extends State<PaywallScreen> {
     }
   }
 
+  String _getBillingText(PackageType packageType) {
+    switch (packageType) {
+      case PackageType.monthly:
+        return 'Billed monthly';
+      case PackageType.annual:
+        return 'Billed yearly';
+      default:
+        return '';
+    }
+  }
+
+  /// Whether [package] has an intro offer this user can redeem. iOS reports
+  /// eligibility per product; Play only lists offers the user is eligible for.
+  bool _isIntroEligible(Package package) {
+    if (package.storeProduct.introductoryPrice == null) return false;
+    if (!Platform.isIOS) return true;
+    return _introEligibility[package.storeProduct.identifier]?.status ==
+        IntroEligibilityStatus.introEligibilityStatusEligible;
+  }
+
+  bool _hasFreeTrial(Package package) =>
+      _isIntroEligible(package) && package.storeProduct.introductoryPrice!.price == 0;
+
+  /// e.g. "7-day free trial", or "Intro offer" for a paid intro price.
+  String _getTrialText(Package package) {
+    final intro = package.storeProduct.introductoryPrice!;
+    if (intro.price != 0) return 'Intro offer';
+    if (intro.periodUnit == PeriodUnit.unknown) return 'Free trial';
+    final unit = intro.periodUnit.name;
+    return '${intro.periodNumberOfUnits}-$unit free trial';
+  }
+
   String _getButtonText() {
-    if (_selectedPackage != null && _introlEligibility != null) {
-      final hasIntroPrice = _selectedPackage!.storeProduct.introductoryPrice != null;
-      final isIntroEligible = Platform.isIOS ? _introlEligibility!.status == IntroEligibilityStatus.introEligibilityStatusEligible && hasIntroPrice : hasIntroPrice;
-      
-      if (isIntroEligible) {
-        return 'Start your free trial';
-      }
+    if (_selectedPackage != null && _hasFreeTrial(_selectedPackage!)) {
+      return 'Start your free trial';
     }
     return 'Subscribe Now';
   }
@@ -201,42 +196,30 @@ class _PaywallScreenState extends State<PaywallScreen> {
       await launchUrl(uri);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not open $url'),
-            backgroundColor: CustomAppTheme.darkError,
-          ),
-        );
+        showAppSnackBar(context, 'Could not open $url', type: SnackType.error);
       }
     }
   }
 
   Widget _buildTermsAndPrivacyText(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textMuted);
+    final link = base?.copyWith(color: AppColors.primary);
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: CustomAppTheme.darkOnSurface.withValues(alpha: 0.5),
-              fontSize: 11,
-            ),
+        style: base,
         children: [
           const TextSpan(text: 'By subscribing, you agree to our '),
           TextSpan(
             text: 'Terms of Use',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: CustomAppTheme.primaryCyan,
-                  fontSize: 11,
-                ),
+            style: link,
             recognizer: TapGestureRecognizer()
               ..onTap = () => _launchURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
           ),
           const TextSpan(text: ' and '),
           TextSpan(
             text: 'Privacy Policy',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: CustomAppTheme.primaryCyan,
-                  fontSize: 11,
-                ),
+            style: link,
             recognizer: TapGestureRecognizer()
               ..onTap = () => _launchURL('https://stanimeros.com/privacy-policy'),
           ),
@@ -248,78 +231,79 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: CustomAppTheme.darkBackground,
       body: SafeArea(
         child: _isLoading && _offerings == null
-            ? const Center(
-                child: CircularProgressIndicator(
-                  color: CustomAppTheme.primaryCyan,
-                ),
-              )
+            ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Title
+                    // Hero
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        decoration: const BoxDecoration(
+                          gradient: AppColors.brandGradient,
+                          borderRadius: AppRadius.large,
+                        ),
+                        child: const HeroIcon(
+                          HeroIcons.bolt,
+                          style: HeroIconStyle.solid,
+                          color: AppColors.onStatus,
+                          size: AppSizes.iconXl * 0.7,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
                     Text(
                       'Unlock Full Access',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                      style: textTheme.headlineMedium,
                       textAlign: TextAlign.center,
                     ),
-                    // Subtitle
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Get unlimited access to all premium features',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: CustomAppTheme.darkOnSurface.withValues(alpha: 0.7),
-                          ),
+                      style: textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 32),
-                    // Features list
+                    const SizedBox(height: AppSpacing.xxl),
                     _buildFeatureItem(
                       icon: HeroIcons.sparkles,
                       title: 'Unlimited Notifications',
                       description: 'Send as many notifications as you need',
-                      gradient: [CustomAppTheme.primaryPurple, CustomAppTheme.primaryBlue],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.listGap),
                     _buildFeatureItem(
                       icon: HeroIcons.hashtag,
                       title: 'Unlimited Topics & Conditions',
                       description: 'Create and manage unlimited targeting options',
-                      gradient: [CustomAppTheme.primaryBlue, CustomAppTheme.primaryCyan],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.listGap),
                     _buildFeatureItem(
                       icon: HeroIcons.devicePhoneMobile,
                       title: 'Manage All Devices',
                       description: 'Track and send to unlimited devices',
-                      gradient: [CustomAppTheme.primaryCyan, CustomAppTheme.primaryBlue],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.listGap),
                     _buildFeatureItem(
                       icon: HeroIcons.clock,
                       title: 'Full History & Tools',
                       description: 'View history, duplicate, and resend notifications',
-                      gradient: [CustomAppTheme.primaryPurple, CustomAppTheme.primaryCyan],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xl),
                     // Subscription packages
                     if (_offerings?.current != null &&
                         _offerings!.current!.availablePackages.isNotEmpty)
                       ..._offerings!.current!.availablePackages.map((package) {
                         final isSelected = _selectedPackage?.identifier == package.identifier;
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: _buildPackageCard(
                             package: package,
                             isSelected: isSelected,
-                            introEligibility: _introlEligibility,
                             onTap: () {
                               setState(() {
                                 _selectedPackage = package;
@@ -328,49 +312,34 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           ),
                         );
                       }),
+                    const SizedBox(height: AppSpacing.xs),
                     // Purchase/Skip button
                     ElevatedButton(
                       onPressed: _isLoading ? null : kReleaseMode ? _purchasePackage : () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainScreen())),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
                       child: _isLoading
                           ? const SizedBox(
-                              height: 20,
-                              width: 20,
+                              height: AppSizes.iconMd,
+                              width: AppSizes.iconMd,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                color: AppColors.onPrimary,
                               ),
                             )
-                          : Text(
-                              _getButtonText(),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                          : Text(_getButtonText()),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.sm),
                     // Restore purchases button
                     TextButton(
                       onPressed: _isRestoring ? null : _restorePurchases,
                       child: _isRestoring
                           ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: CustomAppTheme.primaryCyan,
-                              ),
+                              height: AppSizes.iconMd,
+                              width: AppSizes.iconMd,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Text('Restore Purchases'),
                     ),
-                    const SizedBox(height: 12),
-                    // Terms and privacy
+                    const SizedBox(height: AppSpacing.sm),
                     _buildTermsAndPrivacyText(context),
                   ],
                 ),
@@ -383,73 +352,34 @@ class _PaywallScreenState extends State<PaywallScreen> {
     required HeroIcons icon,
     required String title,
     required String description,
-    required List<Color> gradient,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            gradient[0].withValues(alpha: 0.15),
-            gradient[1].withValues(alpha: 0.15),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: gradient[0].withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: gradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      child: Padding(
+        padding: AppSpacing.card,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.tint(AppColors.primary),
+                borderRadius: AppRadius.medium,
               ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: gradient[0].withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              child: HeroIcon(icon, color: AppColors.primary, size: AppSizes.iconLg),
             ),
-            child: HeroIcon(
-              icon,
-              color: Colors.white,
-              size: 24,
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: textTheme.titleSmall),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(description, style: textTheme.bodySmall),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: CustomAppTheme.darkOnSurface.withValues(alpha: 0.7),
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -457,75 +387,54 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Widget _buildPackageCard({
     required Package package,
     required bool isSelected,
-    required IntroEligibility? introEligibility,
     required VoidCallback onTap,
   }) {
-    final days = package.storeProduct.introductoryPrice?.periodNumberOfUnits ?? 0;
-    final unit = package.storeProduct.introductoryPrice?.periodUnit.name ?? 'day';
-    final trialText = '$days $unit trial';
+    final isIntroEligible = _isIntroEligible(package);
 
-    final hasIntroPrice = _selectedPackage!.storeProduct.introductoryPrice != null;
-    final isIntroEligible = Platform.isIOS ? introEligibility!.status == IntroEligibilityStatus.introEligibilityStatusEligible && hasIntroPrice : hasIntroPrice;
-
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: AppRadius.large,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: AppSpacing.card,
         decoration: BoxDecoration(
-          color: CustomAppTheme.darkCardSurface,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? AppColors.tint(AppColors.primary) : AppColors.surface,
+          borderRadius: AppRadius.large,
           border: Border.all(
-            color: isSelected
-                ? CustomAppTheme.primaryCyan
-                : CustomAppTheme.darkOnSurface.withValues(alpha: 0.2),
-            width: isSelected ? 2 : 1,
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 2 : AppSizes.borderWidth,
           ),
         ),
         child: Row(
           children: [
             Container(
-              width: 24,
-              height: 24,
+              width: AppSizes.iconLg,
+              height: AppSizes.iconLg,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
+                color: isSelected ? AppColors.primary : Colors.transparent,
                 border: Border.all(
-                  color: isSelected
-                      ? CustomAppTheme.primaryCyan
-                      : CustomAppTheme.darkOnSurface.withValues(alpha: 0.3),
+                  color: isSelected ? AppColors.primary : AppColors.textMuted,
                   width: 2,
                 ),
-                color: isSelected
-                    ? CustomAppTheme.primaryCyan
-                    : Colors.transparent,
               ),
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      size: 16,
-                      color: Colors.black,
+                  ? const HeroIcon(
+                      HeroIcons.check,
+                      style: HeroIconStyle.solid,
+                      size: AppSizes.iconSm,
+                      color: AppColors.onPrimary,
                     )
                   : null,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _getPackageDisplayName(package.packageType),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    package.storeProduct.title.substring(0, 7),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: CustomAppTheme.darkOnSurface.withValues(alpha: 0.7),
-                        ),
-                  ),
+                  Text(_getPackageDisplayName(package.packageType), style: textTheme.titleMedium),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(_getBillingText(package.packageType), style: textTheme.bodySmall),
                 ],
               ),
             ),
@@ -534,20 +443,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
               children: [
                 Text(
                   package.storeProduct.priceString,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: CustomAppTheme.primaryCyan,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: textTheme.titleLarge?.copyWith(color: AppColors.primary),
                 ),
                 if (isIntroEligible) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    trialText,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: CustomAppTheme.primaryCyan,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  StatusBadge(label: _getTrialText(package), color: AppColors.primary),
                 ],
               ],
             ),
@@ -557,4 +457,3 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 }
-

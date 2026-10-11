@@ -42,10 +42,7 @@ class _MainScreenState extends State<MainScreen> {
         title: Text(_getAppBarTitle()),
         actions: [
           IconButton(
-            icon: const HeroIcon(
-              HeroIcons.questionMarkCircle,
-              color: Colors.white,
-            ),
+            icon: const HeroIcon(HeroIcons.questionMarkCircle),
             onPressed: () {
               Navigator.push(
                 context,
@@ -87,7 +84,6 @@ class _MainScreenState extends State<MainScreen> {
             _currentIndex = index;
           });
         },
-        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: HeroIcon(HeroIcons.plusCircle),

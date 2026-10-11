@@ -138,12 +138,10 @@ class _PaywallGateState extends State<PaywallGate> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
-        backgroundColor: CustomAppTheme.darkBackground,
-        body: const Center(
-          child: CircularProgressIndicator(
-            color: CustomAppTheme.primaryCyan,
-          ),
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }

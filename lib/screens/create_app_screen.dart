@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -6,7 +5,9 @@ import 'package:heroicons/heroicons.dart';
 import '../models/app_model.dart';
 import '../services/app_storage_service.dart';
 import '../services/secure_storage_service.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/custom_app_theme.dart';
 
 class CreateAppScreen extends StatefulWidget {
   final AppModel? app;
@@ -56,19 +57,15 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
     FocusScope.of(context).unfocus();
     
     try {
-      final result = await FilePicker.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: ['json'],
-        allowMultiple: false,
       );
 
-      if (result != null && result.files.single.path != null) {
-        final filePath = result.files.single.path!;
-        final file = File(filePath);
-        
+      if (file != null) {
         // Validate JSON and create GoogleKeyModel
         try {
-          final jsonContent = await file.readAsString();
+          final jsonContent = utf8.decode(await file.readAsBytes());
           final serviceAccount = jsonDecode(jsonContent) as Map<String, dynamic>;
           
           // Validate the model
@@ -82,45 +79,30 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
           });
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Invalid JSON file: $e'),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
+            showAppSnackBar(context, 'Invalid JSON file: $e', type: SnackType.error);
           }
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading file: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, 'Error loading file: $e', type: SnackType.error);
       }
     }
   }
 
   Widget _buildLogoPreview() {
-    final theme = Theme.of(context);
     final emptyPlaceholder = Container(
       width: double.infinity,
       height: 200,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-          width: 2,
-          style: BorderStyle.solid,
-        ),
+        color: AppColors.surface,
+        borderRadius: AppRadius.large,
+        border: Border.all(color: AppColors.border, width: AppSizes.borderWidth),
       ),
-      child: Icon(
-        Icons.image,
-        size: 50,
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+      child: const HeroIcon(
+        HeroIcons.photo,
+        size: AppSizes.iconXl,
+        color: AppColors.textMuted,
       ),
     );
 
@@ -131,7 +113,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
     try {
       final imageBytes = base64Decode(_selectedLogoImageData!);
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.large,
         child: Image.memory(
           imageBytes,
           width: double.infinity,
@@ -149,15 +131,11 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
 
   Future<void> _pickLogoFile() async {
     try {
-      final result = await FilePicker.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.image,
-        allowMultiple: false,
       );
 
-      if (result != null && result.files.single.path != null) {
-        final filePath = result.files.single.path!;
-        final file = File(filePath);
-        
+      if (file != null) {
         // Read image as bytes and convert to base64
         final imageBytes = await file.readAsBytes();
         final base64Image = base64Encode(imageBytes);
@@ -168,12 +146,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading image: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, 'Error loading image: $e', type: SnackType.error);
       }
     }
   }
@@ -193,24 +166,14 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
     }
     
     if (serviceAccount == null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select a JSON file'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      showAppSnackBar(context, 'Please select a JSON file', type: SnackType.error);
       return;
     }
 
     // Check if both checkboxes are checked (only for new apps or when JSON is selected)
     if (serviceAccount != null && (!_understandEncryption || !_acceptLiability)) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Please accept both terms before creating the app'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, 'Please accept both terms before creating the app', type: SnackType.error);
       }
       return;
     }
@@ -238,8 +201,10 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
     await _appStorage.saveApp(app);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.app == null ? 'App saved successfully' : 'App updated successfully')),
+      showAppSnackBar(
+        context,
+        widget.app == null ? 'App saved successfully' : 'App updated successfully',
+        type: SnackType.success,
       );
       Navigator.pop(context, true);
     }
@@ -259,7 +224,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
         title: Text(widget.app == null ? 'Create App' : 'Edit App'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
+        padding: AppSpacing.screen,
         child: Form(
           key: _formKey,
           child: Column(
@@ -269,7 +234,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(12),
+                      padding: AppSpacing.card,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -278,13 +243,12 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                             onTap: _pickLogoFile,
                             child: _buildLogoPreview(),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           TextFormField(
                             controller: _nameController,
                             decoration: const InputDecoration(
                               labelText: 'App Name',
                               hintText: 'My Awesome App',
-                              border: OutlineInputBorder(),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -293,13 +257,12 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           TextFormField(
                             controller: _packageController,
                             decoration: const InputDecoration(
                               labelText: 'Package Name',
                               hintText: 'com.example.app',
-                              border: OutlineInputBorder(),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -308,15 +271,27 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           if (_serviceAccount == null)
                             InkWell(
                               onTap: _pickJsonFile,
-                              borderRadius: BorderRadius.circular(8),
-                              child: InputDecorator(
-                                isEmpty: true,
-                                decoration: InputDecoration(
-                                  labelText: 'Select a json file',
+                              borderRadius: AppRadius.large,
+                              child: Container(
+                                padding: AppSpacing.card,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: AppRadius.large,
+                                  border: Border.all(color: AppColors.border, width: AppSizes.borderWidth),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const HeroIcon(HeroIcons.documentArrowUp, color: AppColors.textSecondary),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Text(
+                                      'Select a JSON file',
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -327,7 +302,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                       ),
                     ),
                     CheckboxListTile(
-                      title: const Text('I understand that my key is encrypted and stored only on this device.', style: TextStyle(fontSize: 13)),
+                      title: Text('I understand that my key is encrypted and stored only on this device.', style: Theme.of(context).textTheme.labelMedium),
                       value: _understandEncryption,
                       onChanged: (value) {
                         setState(() {
@@ -337,7 +312,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                       controlAffinity: ListTileControlAffinity.leading,
                     ),
                     CheckboxListTile(
-                      title: const Text('I understand that I am responsible for any google account or billing issues.', style: TextStyle(fontSize: 13)),
+                      title: Text('I understand that I am responsible for any Google account or billing issues.', style: Theme.of(context).textTheme.labelMedium),
                       value: _acceptLiability,
                       onChanged: (value) {
                         setState(() {
@@ -346,11 +321,11 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                       },
                       controlAffinity: ListTileControlAffinity.leading,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               ElevatedButton(
                 onPressed: _saveApp,
                 child: Text(widget.app == null ? 'Save App' : 'Update App'),
@@ -369,23 +344,17 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
       child: ExpansionTile(
         title: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 20,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
+            const HeroIcon(HeroIcons.informationCircle, color: AppColors.primary),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               _serviceAccount!['project_id'],
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),
         children: [
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -397,26 +366,20 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                           entry.key != 'private_key')
                       .map((entry) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
                       child: TextFormField(
                         initialValue: _formatJsonValue(entry.value),
                         enabled: false,
                         decoration: InputDecoration(
                           labelText: entry.key,
-                          border: const OutlineInputBorder(),
-                          filled: true,
-                          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                         ),
                         maxLines: entry.value is String && entry.value.length > 100 ? 3 : 1,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textPrimary),
                       ),
                     );
                   }),
                 ],
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 OutlinedButton.icon(
                   onPressed: () {
                     setState(() {
@@ -425,9 +388,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
                   },
                   icon: const HeroIcon(HeroIcons.trash),
                   label: const Text('Clear Data'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.error,
-                  ),
+                  style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
                 ),
               ],
             ),

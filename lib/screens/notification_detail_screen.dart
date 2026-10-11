@@ -7,6 +7,7 @@ import '../services/notification_storage_service.dart';
 import '../services/messaging_service.dart';
 import 'create_notification_screen.dart';
 import '../widgets/custom_app_theme.dart';
+import '../widgets/app_widgets.dart';
 import '../utils/tools.dart';
 
 class NotificationDetailScreen extends StatelessWidget {
@@ -21,29 +22,32 @@ class NotificationDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final statusColor = notification.sent ? AppColors.success : AppColors.error;
     return Scaffold(
       appBar: CustomAppBar(
         title: Text(notification.nickname),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screen,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SectionHeader('Message'),
             _buildInfoCard(
               context,
               'App',
               notification.app.name,
               icon: HeroIcons.cube,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.listGap),
             _buildInfoCard(
               context,
               'Title',
               notification.title,
               icon: HeroIcons.documentText,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.listGap),
             _buildInfoCard(
               context,
               'Body',
@@ -51,7 +55,7 @@ class NotificationDetailScreen extends StatelessWidget {
               icon: HeroIcons.chatBubbleLeftRight,
             ),
             if (notification.imageUrl != null && notification.imageUrl!.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.listGap),
               _buildInfoCard(
                 context,
                 'Image URL',
@@ -59,17 +63,17 @@ class NotificationDetailScreen extends StatelessWidget {
                 icon: HeroIcons.photo,
               ),
             ],
-            if (notification.topic != null) ...[
-              const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.xl),
+            const SectionHeader('Target'),
+            if (notification.topic != null)
               _buildInfoCard(
                 context,
                 'Topic',
                 notification.topic!,
                 icon: HeroIcons.hashtag,
               ),
-            ],
             if (notification.condition != null) ...[
-              const SizedBox(height: 12),
+              if (notification.topic != null) const SizedBox(height: AppSpacing.listGap),
               _buildInfoCard(
                 context,
                 'Condition',
@@ -78,7 +82,8 @@ class NotificationDetailScreen extends StatelessWidget {
               ),
             ],
             if (notification.token != null && notification.token!.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              if (notification.topic != null || notification.condition != null)
+                const SizedBox(height: AppSpacing.listGap),
               _buildInfoCard(
                 context,
                 'Recipient',
@@ -87,159 +92,88 @@ class NotificationDetailScreen extends StatelessWidget {
               ),
             ],
             if (notification.data != null && notification.data!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
-                    width: 1,
+              const SizedBox(height: AppSpacing.xl),
+              const SectionHeader('Payload'),
+              Card(
+                child: Padding(
+                  padding: AppSpacing.card,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const HeroIcon(HeroIcons.codeBracket, color: AppColors.textSecondary),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text('Custom Data', style: textTheme.titleSmall),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      ...notification.data!.entries.map((entry) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${entry.key}: ', style: textTheme.labelMedium),
+                            Expanded(
+                              child: Text(
+                                entry.value.toString(),
+                                style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                    ],
                   ),
                 ),
-                padding: const EdgeInsets.all(16),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.xl),
+            const SectionHeader('Delivery'),
+            Card(
+              child: Padding(
+                padding: AppSpacing.card,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        HeroIcon(HeroIcons.codeBracket, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Custom Data',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        const HeroIcon(HeroIcons.clock, color: AppColors.textSecondary),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(child: Text('Sent At', style: textTheme.titleSmall)),
+                        StatusBadge(
+                          label: notification.resultCode ?? 'Unknown',
+                          color: statusColor,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      formatDate(notification.createdAt),
+                      style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        StatusIcon(success: notification.sent, size: AppSizes.iconSm),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.xs),
+                            child: Text(
+                              notification.resultMessage ?? 'Unknown error occurred',
+                              style: textTheme.bodyMedium?.copyWith(color: statusColor),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    ...notification.data!.entries.map((entry) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${entry.key}: ',
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          Expanded(
-                            child: Text(
-                              entry.value.toString(),
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )),
                   ],
                 ),
               ),
-            ],
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                HeroIcon(HeroIcons.clock, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Sent At',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              formatDate(notification.createdAt),
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Error code or 200 in top right
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: notification.sent
-                              ? Colors.green.withValues(alpha: 0.1)
-                              : Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          notification.resultCode ?? 'Unknown',
-                          style: TextStyle(
-                            color: notification.sent ? Colors.green : Colors.red,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: notification.sent
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        HeroIcon(
-                          notification.sent ? HeroIcons.checkCircle : HeroIcons.xCircle,
-                          style: HeroIconStyle.solid,
-                          color: notification.sent ? Colors.green : Colors.red,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            notification.resultMessage ?? 'Unknown error occurred',
-                            style: TextStyle(
-                              color: notification.sent ? Colors.green : Colors.red,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: null,
-                            softWrap: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             Row(
               children: [
                 Expanded(
@@ -249,7 +183,7 @@ class NotificationDetailScreen extends StatelessWidget {
                     label: const Text('Duplicate'),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _showResendConfirmation(context),
@@ -266,45 +200,31 @@ class NotificationDetailScreen extends StatelessWidget {
   }
 
   Widget _buildInfoCard(BuildContext context, String label, String value, {required HeroIcons icon}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HeroIcon(icon, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                  ),
-                ),
-              ],
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      child: Padding(
+        padding: AppSpacing.card,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            HeroIcon(icon, color: AppColors.textSecondary),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: textTheme.bodySmall),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(value, style: textTheme.bodyLarge),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
 
   void _duplicateNotification(BuildContext context) {
     Navigator.push(
@@ -326,13 +246,8 @@ class NotificationDetailScreen extends StatelessWidget {
   void _showResendConfirmation(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(24),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -341,9 +256,7 @@ class NotificationDetailScreen extends StatelessWidget {
               children: [
                 Text(
                   'Resend Notification',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 IconButton(
                   icon: const HeroIcon(HeroIcons.xMark),
@@ -351,18 +264,18 @@ class NotificationDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               'Are you sure you want to resend this notification?',
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             ActionSlider.standard(
               width: double.infinity,
               height: 64,
-              backgroundColor: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
-              toggleColor: CustomAppTheme.primaryCyan,
+              backgroundColor: AppColors.surface,
+              toggleColor: AppColors.primary,
               action: (controller) async {
                 controller.loading();
                 await _resendNotification(context);
@@ -372,21 +285,11 @@ class NotificationDetailScreen extends StatelessWidget {
                   controller.reset();
                 }
               },
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Slide to Resend',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+              child: Text(
+                'Slide to Resend',
+                style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -421,15 +324,12 @@ class NotificationDetailScreen extends StatelessWidget {
       await notificationStorage.saveNotification(updatedNotification);
 
       if (context.mounted) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response['message'] ?? (success ? 'Notification resent successfully' : 'Failed to resend notification')),
-              backgroundColor: success ? Colors.green : Theme.of(context).colorScheme.error,
-            ),
-          );
-          onDataChanged?.call();
-        }
+        showAppSnackBar(
+          context,
+          response['message'] ?? (success ? 'Notification resent successfully' : 'Failed to resend notification'),
+          type: success ? SnackType.success : SnackType.error,
+        );
+        onDataChanged?.call();
       }
     } catch (e) {      
       final updatedNotification = notification.copyWith(
@@ -443,12 +343,7 @@ class NotificationDetailScreen extends StatelessWidget {
       await notificationStorage.saveNotification(updatedNotification);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(updatedNotification.resultMessage ?? 'Error occurred'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, updatedNotification.resultMessage ?? 'Error occurred', type: SnackType.error);
         onDataChanged?.call();
       }
     }

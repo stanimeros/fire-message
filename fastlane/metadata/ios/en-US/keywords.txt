@@ -1,1 +1,1 @@
-fcm,push,notification,firebase,messaging,developer,api,test,debug,http v1
+firebase,cloud,messaging,token,topic,payload,api,debug,developer,qa,json,http v1,remote,alert,sdk

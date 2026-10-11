@@ -1,1 +1,1 @@
-Send, target, and track push notifications across all your projects — with credentials that never leave your device.
+Send and test FCM push notifications from anywhere. Manage multiple Firebase projects, target tokens, topics or conditions, and keep your keys encrypted on-device.
