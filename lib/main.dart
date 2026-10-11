@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'debug/screenshot_router.dart';
 import 'screens/main_screen.dart';
 import 'screens/paywall_screen.dart';
 import 'widgets/custom_app_theme.dart';
@@ -33,6 +35,7 @@ void main() async {
     debugPrint('Failed to initialize Purchases: $e');
   }
   
+  if (kDebugMode) ScreenshotRouter.startRouteFileWatcher();
   runApp(const MainApp());
 }
 
@@ -43,9 +46,11 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: kDebugMode ? ScreenshotRouter.navigatorKey : null,
       title: 'Fire Message',
       theme: CustomAppTheme.darkTheme,
       home: const PaywallGate(),
+      onGenerateRoute: kDebugMode ? ScreenshotRouter.onGenerateRoute : null,
     );
   }
 }

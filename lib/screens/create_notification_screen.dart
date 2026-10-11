@@ -19,11 +19,15 @@ class CreateNotificationScreen extends StatefulWidget {
   final VoidCallback? onDataChanged;
   final NotificationModel? initialNotification;
 
+  /// Debug-only: open the target selector once the form is populated.
+  final bool openTargetSelectorOnStart;
+
   const CreateNotificationScreen({
     super.key,
     this.onRefreshCallback,
     this.onDataChanged,
     this.initialNotification,
+    this.openTargetSelectorOnStart = false,
   });
 
   @override
@@ -74,9 +78,12 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
       setState(() {});
     });
     widget.onRefreshCallback?.call(_refresh);
-    _loadApps().then((_) {
+    _loadApps().then((_) async {
       if (widget.initialNotification != null) {
-        _populateFromNotification(widget.initialNotification!);
+        await _populateFromNotification(widget.initialNotification!);
+      }
+      if (widget.openTargetSelectorOnStart && mounted) {
+        await _showTargetSelector();
       }
     });
   }
@@ -346,13 +353,7 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> wit
               if (_conditions.isNotEmpty) ...[
                 const SectionHeader('Conditions'),
                 ..._conditions.map((condition) => ListTile(
-                  leading: CircleAvatar(
-                    radius: AppSpacing.md,
-                    child: Text(
-                      condition.operator,
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                  ),
+                  leading: StatusBadge(label: condition.operator, color: AppColors.primary),
                   title: Text(condition.name),
                   subtitle: Text(
                     '${condition.topicIds.length} topics, ${condition.conditionIds.length} nested',

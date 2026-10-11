@@ -82,6 +82,7 @@ class AppSizes {
   static const double iconLg = 24;
   static const double iconXl = 56; // empty states
   static const double avatar = 44;
+  static const double logoPreview = 140;
   static const double buttonHeight = 52;
   static const double borderWidth = 1;
 }

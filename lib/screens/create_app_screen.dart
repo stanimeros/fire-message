@@ -11,8 +11,21 @@ import '../widgets/custom_app_theme.dart';
 
 class CreateAppScreen extends StatefulWidget {
   final AppModel? app;
-  
-  const CreateAppScreen({super.key, this.app});
+
+  /// Optional debug-only prefill used by `ScreenshotRouter`.
+  final String? demoName;
+  final String? demoPackage;
+  final Map<String, dynamic>? demoServiceAccount;
+  final bool demoAccepted;
+
+  const CreateAppScreen({
+    super.key,
+    this.app,
+    this.demoName,
+    this.demoPackage,
+    this.demoServiceAccount,
+    this.demoAccepted = false,
+  });
 
   @override
   State<CreateAppScreen> createState() => _CreateAppScreenState();
@@ -32,6 +45,11 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.demoName != null) _nameController.text = widget.demoName!;
+    if (widget.demoPackage != null) _packageController.text = widget.demoPackage!;
+    _serviceAccount = widget.demoServiceAccount;
+    _understandEncryption = widget.demoAccepted;
+    _acceptLiability = widget.demoAccepted;
     if (widget.app != null) {
       _nameController.text = widget.app!.name;
       _packageController.text = widget.app!.packageName;
@@ -93,7 +111,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
   Widget _buildLogoPreview() {
     final emptyPlaceholder = Container(
       width: double.infinity,
-      height: 200,
+      height: AppSizes.logoPreview,
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppRadius.large,
@@ -117,7 +135,7 @@ class _CreateAppScreenState extends State<CreateAppScreen> {
         child: Image.memory(
           imageBytes,
           width: double.infinity,
-          height: 200,
+          height: AppSizes.logoPreview,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             return emptyPlaceholder;

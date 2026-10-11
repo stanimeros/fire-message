@@ -5,16 +5,27 @@ import 'apps_screen.dart';
 import 'create_notification_screen.dart';
 import 'history_screen.dart';
 import 'help_screen.dart';
+import '../models/notification_model.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  /// Optional debug-only parameters used by `ScreenshotRouter`.
+  final int initialIndex;
+  final NotificationModel? demoNotification;
+  final bool demoOpenTargetSelector;
+
+  const MainScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.demoNotification,
+    this.demoOpenTargetSelector = false,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex = widget.initialIndex;
   int? _previousIndex;
 
   VoidCallback? _refreshAppsScreen;
@@ -38,7 +49,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        leading: null,
+        showLeading: false,
         title: Text(_getAppBarTitle()),
         actions: [
           IconButton(
@@ -63,6 +74,8 @@ class _MainScreenState extends State<MainScreen> {
             onDataChanged: _refreshAllScreens,
           ),
           CreateNotificationScreen(
+            initialNotification: widget.demoNotification,
+            openTargetSelectorOnStart: widget.demoOpenTargetSelector,
             onRefreshCallback: (callback) => _refreshCreateNotificationScreen = callback,
             onDataChanged: _refreshAllScreens,
           ),

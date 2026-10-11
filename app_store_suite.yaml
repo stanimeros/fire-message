@@ -11,7 +11,7 @@ app:
   # Required only for `auto-capture` (unattended, deep-link-driven capture).
   # Omit both this and shots: below to use manual capture-adjacent tooling instead
   # (compose/style-preview/etc. still work fine without them).
-  # deep_link_scheme: yourapp # yourapp://<route> — must be registered by the app
+  deep_link_scheme: firemessage # yourapp://<route> — must be registered by the app
   # (iOS: CFBundleURLSchemes in Info.plist; Android: an <intent-filter> with
   # android:scheme="yourapp" on the launcher activity), and handled by a debug
   # router that lands on the target screen with sample/mock data already loaded
@@ -39,20 +39,34 @@ languages:
 
 devices:
   ios_phone:
-    simulator: "iPhone 17 Pro" # any name from `xcrun simctl list devices available`
+    simulator: "iPhone 17" # any name from `xcrun simctl list devices available`
+  ios_tablet:
+    simulator: "iPad Pro 13-inch (M5)"
   android_phone:
     avd: "Medium_Phone" # any AVD name; `appstoresuite setup` creates missing ones
 
 # Optional timing for `auto-capture` (overridable via --warmup-delay / --render-delay).
-# auto_capture:
-#   warmup_delay: 15 # after flutter run is ready, before the first deep link
-#   render_delay: 6  # after each deep link, before screenshotting
+auto_capture:
+  warmup_delay: 10 # after flutter run is ready, before the first deep link
+  render_delay: 4  # after each deep link, before screenshotting
+  # Xcode 27's DeviceHub can't be scripted to tap the "Open in Fire Message?"
+  # sheet that `simctl openurl` shows; deliver routes through a file the debug
+  # router polls instead (ScreenshotRouter.startRouteFileWatcher).
+  ios_route_file: appstoresuite_route
 
-# shots:
-#   - id: home
-#     route: shot/home
-#   - id: pricing
-#     route: shot/pricing
+# Ids carry a numeric prefix because the composer orders the delivered
+# screenshots by sorting on `id`, not by the order of this list.
+shots:
+  - id: 1-create_notification
+    route: shot/create_notification
+  - id: 2-apps
+    route: shot/apps
+  - id: 3-targeting
+    route: shot/targeting
+  - id: 4-history
+    route: shot/history
+  - id: 5-security
+    route: shot/security
 
 style:
   background_color: "#FAFAF8"
